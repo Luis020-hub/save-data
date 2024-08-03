@@ -1,32 +1,42 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: save-data
+Description: >
+  lambda-save-data
+
+  Sample SAM Template for lambda-save-data
 
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 520
+    MemorySize: 512
 
 Resources:
-  MySaveSQS:
+  NFScrappedSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      FifoTopic: true
+      TopicName: "NFScrappedSNS.fifo"
+      ContentBasedDeduplication: true
+
+  NFSaveSQS:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: "MySaveSQS.fifo"
+      QueueName: "NFSaveSQS.fifo"
       FifoQueue: true
 
   Subscription:
     Type: "AWS::SNS::Subscription"
     Properties:
-      TopicArn: arn:aws:sns:us-east-1:851725185529:nfe-data-parsed.fifo
-      Endpoint: !GetAtt MySaveSQS.Arn
+      TopicArn: !Ref NFScrappedSNS
+      Endpoint: !GetAtt NFSaveSQS.Arn
       Protocol: sqs
       RawMessageDelivery: true
 
-  MySaveSQSQueuePolicy:
+  NFSaveSQSQueuePolicy:
     Type: "AWS::SQS::QueuePolicy"
     Properties:
       Queues:
-        - !Ref MySaveSQS
+        - !Ref NFSaveSQS
       PolicyDocument:
         Statement:
           - Effect: "Allow"
@@ -34,12 +44,12 @@ Resources:
             Action:
               - sqs:SendMessage
             Resource:
-              - !GetAtt MySaveSQS.Arn
+              - !GetAtt NFSaveSQS.Arn
             Condition:
               ArnEquals:
-                "aws:SourceArn": arn:aws:sns:us-east-1:851725185529:nfe-data-parsed.fifo
+                "aws:SourceArn": !Ref NFScrappedSNS
 
-  MySaveFunction:
+  NFSaveFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: save-data/
@@ -47,19 +57,16 @@ Resources:
       Runtime: nodejs18.x
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DB_URL_PRODUCTION: ""
+          DB_URL_TEST: "postgres://admin:admin@localhost:5432/db"
+          GOOGLE_API_KEY: ""
       Events:
         SqsEvento:
           Type: SQS
           Properties:
-            Queue: !GetAtt MySaveSQS.Arn
-      Policies:
-        - Statement:
-            - Effect: "Allow"
-              Action:
-                - "sqs:ReceiveMessage"
-                - "sqs:DeleteMessage"
-                - "sqs:GetQueueAttributes"
-              Resource: "*"
+            Queue: !GetAtt NFSaveSQS.Arn
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -68,3 +75,8 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - app.ts
+
+Outputs:
+  NFScrappedSNS:
+    Description: "NFScrappedSNS Function ARN"
+    Value: !Ref NFScrappedSNS
