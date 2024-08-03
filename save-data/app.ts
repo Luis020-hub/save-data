@@ -1,5 +1,9 @@
 import { SQSEvent } from 'aws-lambda';
 import { z, ZodError } from 'zod';
+import { SupermarketRepository } from './bondaries/supermarket-repository';
+import { PgSupermarketRepository } from './adapters/pg-supermarket-repository';
+import { CreateSupermarket } from './use-cases/create-supermarket';
+import { Connection, PgConnection } from './adapters/pg-connection';
 
 export async function lambdaHandler(event: SQSEvent): Promise<void> {
     const recordsSchema = z.array(z.object({
@@ -34,6 +38,14 @@ export async function lambdaHandler(event: SQSEvent): Promise<void> {
         }));
 
         console.log(records);
+
+        const Connection: Connection = new PgConnection("postgres://admin:admin@localhost:5432/my_db");
+        const SupermarketRepository: SupermarketRepository = new PgSupermarketRepository(Connection);
+        const createSupermarketUseCase = new CreateSupermarket(SupermarketRepository);
+
+        for (let record of records) {
+            await createSupermarketUseCase.execute({ cnpj: record.cnpj, name: record.supermarketName, address: record.address });
+        }
 
     } catch (error: unknown) {
         if (error instanceof ZodError) {

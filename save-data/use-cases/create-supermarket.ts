@@ -1,3 +1,5 @@
+import { Supermarket } from "../entities/supermarket";
+
 type Input = {
     cnpj: string;
     name: string;
