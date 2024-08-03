@@ -1,4 +1,4 @@
-import { GeolocationGetawayRegistry } from '../registries/geolacation-gateway-registries';
+import { GeolocationGetawayRegistry } from '../registries/geolacation-gateway-registry';
 
 export class Supermarket {
     private cnpj: string;

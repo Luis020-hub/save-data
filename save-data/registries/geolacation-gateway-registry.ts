@@ -4,7 +4,7 @@ export class GeolocationGetawayRegistry {
     private static insnatce?: GeolocationGetawayRegistry;
     private geolocationGateway?: GeoLocationGateway;
 
-    private constructor() { }
+    private constructor() {}
 
     public setGeolocationGateway(geolocationGateway: GeoLocationGateway) {
         this.geolocationGateway = geolocationGateway;
@@ -12,7 +12,7 @@ export class GeolocationGetawayRegistry {
 
     public getGeolocationGetaway(): GeoLocationGateway {
         if (!this.geolocationGateway) {
-            throw new Error('GeolocationGateway not registered yet');
+            throw new Error('GeolocationGateway not registered');
         }
         return this.geolocationGateway;
     }

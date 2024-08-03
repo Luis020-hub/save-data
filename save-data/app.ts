@@ -10,6 +10,9 @@ import { PgProductRepository } from './adapters/pg-product-repository';
 import { CreateProductPrice } from './use-cases/create-product-price';
 import { PgProductPriceRepository } from './adapters/pg-product-price.repository';
 import { ProductPriceRepository } from './bondaries/product-price-repository';
+import { GeoLocationGateway } from './bondaries/geolocation-gateway';
+import { GoogleGeolocationGateway } from './adapters/google-geolocation-gateway';
+import { GeolocationGetawayRegistry } from './registries/geolacation-gateway-registry';
 
 export async function lambdaHandler(event: SQSEvent): Promise<void> {
     const recordsSchema = z.array(z.object({
@@ -43,8 +46,8 @@ export async function lambdaHandler(event: SQSEvent): Promise<void> {
             };
         }));
 
-        console.log(records);
-
+        const geolocationGateway: GeoLocationGateway = new GoogleGeolocationGateway();
+        GeolocationGetawayRegistry.getInstance().setGeolocationGateway(geolocationGateway);
         const connection: Connection = new PgConnection("postgresql://admin:5IqjkM9ZG4WHJfIXHx80TGHXlAzOuSx4@dpg-cqn557lds78s7398c6r0-a.virginia-postgres.render.com/db_project_c1oa?ssl-true");
         const SupermarketRepository: SupermarketRepository = new PgSupermarketRepository(connection);
         const productRepository: ProductRepository = new PgProductRepository(connection);
