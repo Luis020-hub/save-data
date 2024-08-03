@@ -45,7 +45,7 @@ export async function lambdaHandler(event: SQSEvent): Promise<void> {
 
         console.log(records);
 
-        const connection: Connection = new PgConnection("postgres://admin:admin@localhost:5432/my_db");
+        const connection: Connection = new PgConnection("postgresql://admin:5IqjkM9ZG4WHJfIXHx80TGHXlAzOuSx4@dpg-cqn557lds78s7398c6r0-a.virginia-postgres.render.com/db_project_c1oa?ssl-true");
         const SupermarketRepository: SupermarketRepository = new PgSupermarketRepository(connection);
         const productRepository: ProductRepository = new PgProductRepository(connection);
         const productPriceRepository: ProductPriceRepository = new PgProductPriceRepository(connection);

@@ -1,20 +1,21 @@
-import { Supermarket } from "../entities/supermarket";
+import type { SupermarketRepository } from '../bondaries/supermarket-repository';
+import { Supermarket } from '../entities/supermarket';
 
 type Input = {
     cnpj: string;
     name: string;
     address: string;
-}
+};
 
 export class CreateSupermarket {
-    public constructor(readonly supermarketRepository) { }
+    public constructor(readonly supermarketRepository: SupermarketRepository) {}
 
     public async execute({ cnpj, name, address }: Input): Promise<void> {
-        const supermarketExists = this.supermarketRepository.existsByCnpnj(cnpj);
+        const supermarketExists = await this.supermarketRepository.existsByCnpj(cnpj);
         if (supermarketExists) {
             return;
         }
-        const supermarket = Supermarket.create(cnpj, name, address);
+        const supermarket = await Supermarket.create(cnpj, name, address);
         await this.supermarketRepository.save(supermarket);
         return;
     }

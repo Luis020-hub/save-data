@@ -1,65 +1,39 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { type SQSEvent } from 'aws-lambda';
 import { lambdaHandler } from '../../app';
-import { expect, describe, it } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
+import { GoogleGeolocationGateway } from '../../adapters/google-geolocation-gateway';
 
 describe('Unit test for app handler', function () {
-    it('verifies successful response', async () => {
-        const event: APIGatewayProxyEvent = {
-            httpMethod: 'get',
-            body: '',
-            headers: {},
-            isBase64Encoded: false,
-            multiValueHeaders: {},
-            multiValueQueryStringParameters: {},
-            path: '/hello',
-            pathParameters: {},
-            queryStringParameters: {},
-            requestContext: {
-                accountId: '123456789012',
-                apiId: '1234',
-                authorizer: {},
-                httpMethod: 'get',
-                identity: {
-                    accessKey: '',
-                    accountId: '',
-                    apiKey: '',
-                    apiKeyId: '',
-                    caller: '',
-                    clientCert: {
-                        clientCertPem: '',
-                        issuerDN: '',
-                        serialNumber: '',
-                        subjectDN: '',
-                        validity: { notAfter: '', notBefore: '' },
+    it('Successful response', async () => {
+        const event: SQSEvent = {
+            Records: [
+                {
+                    messageId: '059f36b4-87a3-44ab-83d2-661975830a7d',
+                    receiptHandle: 'AQEBwJnKyrHigUMZj6rYigCgxlaS3SLy0a...',
+                    body: '{"nfeId": "31-24/07-17.155.342/0005-07-65-056-000.095.467-100.886.5999","supermarketName": "LOJA ELETRICA LTDA","cnpj": "17.155.342/0005-07","address": "AV Nossa Senhora do Carmo, 1202, Carmo, 3106200 - Belo Horizonte, MG","date": "2024-07-12T13:01:33.000Z","items": [{"name": "PLACA ARIA 4X4 CEGA 57203/021 TRA","code": "2324406630271","price": 5.2},{"name": "CADEADO 25MM","code": "2550201160020","price": 20.19}]}',
+                    attributes: {
+                        ApproximateReceiveCount: '1',
+                        SentTimestamp: '1545082649183',
+                        SenderId: 'AIDAIENQZJOLO23YVJ4VO',
+                        ApproximateFirstReceiveTimestamp: '1545082649185',
                     },
-                    cognitoAuthenticationProvider: '',
-                    cognitoAuthenticationType: '',
-                    cognitoIdentityId: '',
-                    cognitoIdentityPoolId: '',
-                    principalOrgId: '',
-                    sourceIp: '',
-                    user: '',
-                    userAgent: '',
-                    userArn: '',
+                    messageAttributes: {},
+                    md5OfBody: 'e4e68fb7bd0e697a0ae8f1bb342846b3',
+                    eventSource: 'aws:sqs',
+                    eventSourceARN: 'arn:aws:sqs:us-east-2:123456789012:my-queue',
+                    awsRegion: 'us-east-2',
                 },
-                path: '/hello',
-                protocol: 'HTTP/1.1',
-                requestId: 'c6af9ac6-7b61-11e6-9a41-93e8deadbeef',
-                requestTimeEpoch: 1428582896000,
-                resourceId: '123456',
-                resourcePath: '/hello',
-                stage: 'dev',
-            },
-            resource: '',
-            stageVariables: {},
+            ],
         };
-        const result: APIGatewayProxyResult = await lambdaHandler(event);
+        await expect(lambdaHandler(event)).resolves.toBeUndefined();
+    });
 
-        expect(result.statusCode).toEqual(200);
-        expect(result.body).toEqual(
-            JSON.stringify({
-                message: 'hello world',
-            }),
+    it.skip('GoogleGeolocationGateway', async () => {
+        const sut = new GoogleGeolocationGateway();
+        const response = await sut.getGeoLocationFromAddress(
+            'AV Nossa Senhora do Carmo, 1202, Carmo, 3106200 - Belo Horizonte, MG',
         );
+        expect(response.latitude).toBe(-19.9492109);
+        expect(response.longitude).toBe(-43.9364895);
     });
 });
